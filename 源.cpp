@@ -29,6 +29,7 @@
 #include<iostream>
 #include<iomanip>
 #include<string>
+#include<cstring>
 #include<windows.h>
 #include<conio.h>
 #include<cstdio>
@@ -62,6 +63,7 @@ int biaochang = 128;                                                            
 	void zhengli();                                                             //整理指针表，剔除已删除的元素，在空间不足时扩容表长	
 	void chaoxie(char[], int);                                                  //从输入抄写限制指定长度的字符串到目标里面，缓存设为9999个字符
 	void chazhao(char[], int[]);                                                //按某种依据查找符合条件的联系人
+	void paixu();                                                               //*尝试*对联系人进行首字母和拼音冒泡排序
 /*交互性函数*/
 	void xianshi(jijin *zzb);                                                   //（已废弃）从头到尾显示全部联系人
 	void tianjia(jijin *&zzb);                                                  //新增一个联系人
@@ -73,6 +75,7 @@ int biaochang = 128;                                                            
 int 主函数()
 {
 	system("color f5");
+	system("title SlaEpic电话本");
 	newbiao(zhizhenbiao);
 	logo(25,9);
 	pause();
@@ -91,7 +94,25 @@ void caidan() {
 		//case 5:shezhi(); break;
 	default:cout << "    输入出错，请重试\n"; caidan(); break;
 	}*/
+	cout << "+-------+---------------------------------------+\n|       |                                       |\n|  OvO  |  [当前登入用户]                       |\n|       |                                       |\n+-------+---------------------------------------+\n|                                               |\n|  [ESC] 联系人                        个数     |\n|                                               |\n|    [+] 新建联系人                             |\n|                                               |\n|    [C] 修改密码                               |\n|                                               |\n|    [O] 强制排序                               |\n|                                               |\n|[右上X] 退出程序                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|  信工二班周松毅C++大作业                      |\n|  SlaEpic联系人程序 - 2018年6月                |\n|  项目地址 github.com/SlawnQiu/SlaEpic         |\n+-----------------------------------------------+";
+	logo(50, 9);
+	guangbiao(38, 6); cout << setw(4) << std::left << xunzhao();
+	cout << endl;
+	//guangbiao(3,11);输出当前用户名
 
+	guangbiao(118, 16);
+	while (1) {
+		int zifu = anjian();
+		switch (zifu) {
+		case 27:return;
+		case 43:tianjia(zhizhenbiao); return;
+		case 79:;
+		case 111:paixu(); return;//cout << "\7"; return;
+		case 67:;
+		case 99:cout << "\7\7"; return;
+		default:;
+		}
+	}
 	cls();
 }
 void newbiao(jijin *&zzb) {
@@ -124,15 +145,17 @@ int anjian() {
 	rewind(stdin); return -1;
 }
 void tianjia(jijin *&zzb) {
-	cls();
-	cout << "    \n确定添加联系人按回车键，返回按ESC键" << endl;
-	while (1) {
+	//cls();
+	guangbiao(9, 8);
+	cout << "请再按一次" << endl;
+	guangbiao(118, 16);
+	//while (1) {
 		int jianzhi = 0;
 		cin.sync(); cin.clear();
 		jianzhi = anjian();
-		if (jianzhi == 13)break; 
-		if (jianzhi == 27)return;
-	}
+		//if (jianzhi == 13)break; 
+		if (jianzhi != 43)return;
+	//}
 	cls();
 	int i = xunzhao();
 	zzb[i].zhizhen = new ren; zzb[i].zhuangtai = 1;
@@ -249,17 +272,15 @@ void sousuokuang() {
 	char shuru[40] = { '\0' }; int zifu = 0; int i = 0;
 	while (1) {
 		int *jieguo = new int[biaochang]; //储存搜索结果在指针表中的下标，以-1为结束
-
 		chazhao(shuru,jieguo);
 		cls();
-		          //实时输出搜索结果
-
+		//实时输出搜索结果
 		cout << "+----------------+---------------------------------------------------------------------------------------------------+\n|                |                                                                                                   |\n|   查找联系人   |                                                                 [回车]选择  [ESC]菜单             |\n|                |                                                                                                   |\n+----------------+---------------------------------------------------------------------------------------------------+" << endl;
 
 			cout << "     姓名                号码           地址                                    \n" << endl;
 			int g = 0, shuchugeshu = 0;
 			for (g = 0; jieguo[g]!=-1; g++)cout << " " << std::left << setw(4) << ++shuchugeshu << std::left << setw(20) << zhizhenbiao[jieguo[g]].zhizhen->mingzi << std::left << setw(15) << zhizhenbiao[jieguo[g]].zhizhen->haoma << std::left << setw(40) << zhizhenbiao[jieguo[g]].zhizhen->dizhi << "\n" << endl;
-			cout << "     当前搜索结果数量: " << shuchugeshu << endl;
+			cout << "     当前条目数: " << shuchugeshu << endl;
 		
 			guangbiao(20, 2); cout << shuru;
 		zifu = anjian();
@@ -278,15 +299,12 @@ void sousuokuang() {
 		if (zifu == 27)caidan();
 		if (zifu == 13)if(shuchugeshu)bianji(jieguo,shuchugeshu);
 		if (jieguo)delete[]jieguo;//除去旧的搜索结果
-
-
-
 	}
 }
 void chazhao(char yiju[],int jieguo[]) {
 	zhengli();
 	int jieguogeshu = 0;
-	if (yiju[0] == '\0') { for (int i = 0; i < xunzhao(); i++) { jieguo[jieguogeshu] = i; jieguogeshu++; } jieguo[jieguogeshu] = -1; return; }  //考虑到空依据的时候
+	if (yiju[0] == '\0') { for (int i = 0; i < xunzhao(); i++) { jieguo[jieguogeshu] = i; jieguogeshu++; } jieguo[jieguogeshu] = -1;  return; }  //考虑到空依据的时候
 
 	for (int i = 0; i < xunzhao(); i++){
 		string mz = zhizhenbiao[i].zhizhen->mingzi;
@@ -305,11 +323,114 @@ void logo(int x, int y) {
 	guangbiao(x, y + 2); cout << "| |___/ \\\\ \\               \\\\ \\___/            |\\_\\ ";
 	guangbiao(x, y + 3); cout << "|\\ \\___  \\\\ \\        ______ \\\\ \\___       _____ \\_/_     ______";
 	guangbiao(x, y + 4); cout << " \\\\____ \\ \\\\ \\      / ____ \\ \\\\  __\\     / ___ \\ |\\ \\   / _____\\ ";
-	guangbiao(x, y + 5); cout << "  \\____\\ \\ \\\\ \\    |\\ \\__/\\ \\ \\\\ \\_/    |\\ \\  \\ \\ \\\\ \\ |\\ \\____/";
-	guangbiao(x, y + 6); cout << "   ____| |  \\\\ \\___ \\\\ \\__\\\\ \\ \\\\ \\_____ \\\\ \\__\\ \\ \\\\ \\ \\\\ \\______";
+	guangbiao(x, y + 5); cout << "  \\____\\ \\ \\\\ \\    |\\ \\__/\\ \\ \\\\ \\_/    |\\ \\_/\\ \\ \\\\ \\ |\\ \\____/";
+	guangbiao(x, y + 6); cout << "   ____| |  \\\\ \\___ \\\\ \\__\\\\ \\ \\\\ \\_____ \\\\ \\_\\\\ \\ \\\\ \\ \\\\ \\______";
 	guangbiao(x, y + 7); cout << "  |\\_____/   \\\\____\\ \\\\____/\\_\\ \\\\______\\ \\\\  ____\\ \\\\_\\ \\\\_______\\ ";
 	guangbiao(x, y + 8); cout << "   \\____/     \\____/  \\____/\\_/  \\______/  \\\\ \\___/  \\_/  \\_______/";
 	guangbiao(x, y + 9); cout << "                                            \\\\ \\ ";
 	guangbiao(x, y + 10); cout << "                                             \\\\_\\ ";
 	guangbiao(x, y + 11); cout << "                                              \\_/";
+}
+void paixu() {
+	zhengli();
+	system("title 排序中");
+	int renshu = xunzhao();
+	/*char **yiju = new char *[renshu];  //新建一个长度等于联系人个数的字符二维数组，每个行里面一个长度为3的列数组
+	for (int i = 0; i < renshu; i++)yiju[i] = new char[3];
+	for (int i = 0; i < renshu; i++) {
+		int g = 0,zhongwen=0;
+		for (g = 0; g < 2 && zhizhenbiao[i].zhizhen->mingzi[g] != '\0'; g++) {
+			if ((zhizhenbiao[i].zhizhen->mingzi[0] >= 'a'&&zhizhenbiao[i].zhizhen->mingzi[0] <= 'z') || (zhizhenbiao[i].zhizhen->mingzi[0] >= 'A'&&zhizhenbiao[i].zhizhen->mingzi[0] <= 'Z')) {
+				switch (zhizhenbiao[i].zhizhen->mingzi[0]) {
+				case'a':;
+				case'A':yiju[i] = "啊"; break;
+				case'b':;
+				case'B':yiju[i] = "芭"; break;
+				case'c':;
+				case'C':yiju[i] = "擦"; break;
+				case'd':;
+				case'D':yiju[i] = "搭"; break;
+				case'e':;
+				case'E':yiju[i] = "蛾"; break;
+				case'f':;
+				case'F':yiju[i] = "发"; break;
+				case'g':;
+				case'G':yiju[i] = "噶"; break;
+				case'h':;
+				case'H':yiju[i] = "哈"; break;
+				case'i':;
+				case'I':yiju[i] = "击"; break;
+				case'j':;
+				case'J':yiju[i] = "圾"; break;
+				case'k':;
+				case'K':yiju[i] = "喀"; break;
+				case'l':;
+				case'L':yiju[i] = "垃"; break;
+				case'm':;
+				case'M':yiju[i] = "妈"; break;
+				case'n':;
+				case'N':yiju[i] = "拿"; break;
+				case'o':;
+				case'O':yiju[i] = "哦"; break;
+				case'p':;
+				case'P':yiju[i] = "啪"; break;
+				case'q':;
+				case'Q':yiju[i] = "期"; break;
+				case'r':;
+				case'R':yiju[i] = "然"; break;
+				case's':;
+				case'S':yiju[i] = "撒"; break;
+				case't':;
+				case'T':yiju[i] = "塌"; break;
+				case'u':;
+				case'U':yiju[i] = "挖"; break;
+				case'v':;
+				case'V':yiju[i] = "哇"; break;
+				case'w':;
+				case'W':yiju[i] = "蛙"; break;
+				case'x':;
+				case'X':yiju[i] = "昔"; break;
+				case'y':;
+				case'Y':yiju[i] = "压"; break;
+				case'z':;
+				case'Z':yiju[i] = "匝"; break;
+				}
+				g = 2;
+				break;
+			}//字母转换汉字开始，结束后break
+			yiju[i][g] = zhizhenbiao[i].zhizhen->mingzi[g];
+			zhongwen++;
+		}
+		if(zhongwen&&zhizhenbiao[i].zhizhen->mingzi[g] == '\0')yiju[i][g] = '\0';
+	}
+	//冒泡排序//
+	cls();
+	for (int i = 0; i < renshu; i++)cout << yiju[i] << endl;
+	pause();*/
+	ren *linshi = NULL; //char *linshizf = new char[3];
+	for (int lun = 1; lun < renshu; lun++) {
+		int meipai = 1;
+		for (int i = 0; i < renshu - lun; i++) {
+			if (strcmp(zhizhenbiao[i].zhizhen->mingzi, zhizhenbiao[i + 1].zhizhen->mingzi) > 0) {
+				linshi = zhizhenbiao[i].zhizhen;
+				zhizhenbiao[i].zhizhen = zhizhenbiao[i + 1].zhizhen;
+				zhizhenbiao[i + 1].zhizhen = linshi;                          //指针表交换指针值
+				/*for (int g = 0; g < 3; g++) {
+					linshizf = yiju[i][g];
+					yiju[i][g] = yiju[i + 1][g];
+					yiju[i + 1][g] = linshizf;
+				}//交换依据表*/
+				//linshizf = yiju[i];
+				//yiju[i] = yiju[i + 1];
+				//yiju[i + 1] = linshizf;
+
+				meipai = 0;
+				linshi = NULL; //linshizf = 0;
+			}
+		}
+		if (meipai)break;
+	}
+	//for (int i = 0; i < renshu; i++)delete[] yiju[i];
+	//delete[] yiju;
+	system("title SlaEpic电话本");
 }
