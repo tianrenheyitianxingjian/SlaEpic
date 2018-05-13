@@ -22,8 +22,8 @@
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 //               佛祖保佑         永无BUG
-//
-//
+//由于使用了结构体声明成员带初值的语句，请使用VISUAL STUDIO 2017编译该程序
+//C艹大作业2018 信工二班 周松毅
 //
 #include<fstream>
 #include<iostream>
@@ -47,76 +47,201 @@ struct jijin {             //创建一个jijin结构数组zhizhenbiao来保存ren结构对象
 	int zhuangtai = 0;     //0未使用，1已使用 -1已删除
 	ren *zhizhen = NULL;   //存new出来的ren结构对象的位置
 };
+struct shezhi {//存入用户设置等
+	char mima[33] = { 0 };
+	char yonghuming[33] = { 0 };
+	int zidong_paixu = 1;//自动排序，默认开
+	int renshu = 0;
+};
 /*全局变量*/
 jijin *zhizhenbiao = NULL;
 int biaochang = 128;                                                            //指针表的长度 可以选择扩容
+shezhi *set = NULL;
+fstream wenjian;
+const string houzui = ".epic";
+string wenjianming;
 /*支持性函数*/
-    void guangbiao(int x, int y);                                               //转移光标到xy坐标
-	int anjian();                                                               //等待键盘按下任意键，并返回ASCII键值↑72 ↓80 ←75 →77 回车13 ESC27 y121 n110 空格32 出错返回-1
-    void cls() { system("cls"); }                                               //清空屏幕显示
-	void pause() { cout << "\n    请按任意键" << endl; system("pause >nul"); }  //暂停程序执行
-	int hang(int xiang) { return 2 * xiang + 5; }                               //在编辑中返回一项所在的行数
-	int xunzhao();                                                              //从0寻找并返回指针表中未使用的那一项的下标
-	void logo(int x, int y);                                                    //以指定坐标为左上角，输出logo
+void guangbiao(int x, int y);                                               //转移光标到xy坐标
+int anjian();                                                               //等待键盘按下任意键，并返回ASCII键值↑72 ↓80 ←75 →77 回车13 ESC27 y121 n110 空格32 出错返回-1
+void cls() { system("cls"); }                                               //清空屏幕显示
+void pause() { cout << "\n    请按任意键" << endl; system("pause >nul"); }  //暂停程序执行
+int hang(int xiang) { return 2 * xiang + 5; }                               //在编辑中返回一项所在的行数
+int xunzhao();                                                              //从0寻找并返回指针表中未使用的那一项的下标
+void logo(int x, int y);                                                    //以指定坐标为左上角，输出logo
 /*操作性函数*/
-	void newbiao(jijin *&zzb);                                                  //创建指针表
-	void zhengli();                                                             //整理指针表，剔除已删除的元素，在空间不足时扩容表长	
-	void chaoxie(char[], int);                                                  //从输入抄写限制指定长度的字符串到目标里面，缓存设为9999个字符
-	void chazhao(char[], int[]);                                                //按某种依据查找符合条件的联系人
-	void paixu();                                                               //*尝试*对联系人进行首字母和拼音冒泡排序
+void newbiao(jijin *&zzb);                                                  //创建指针表和设置项
+void zhengli();                                                             //整理指针表，剔除已删除的元素，在空间不足时扩容表长	
+void chaoxie(char[], int);                                                  //从输入抄写限制指定长度的字符串到目标里面，缓存设为9999个字符
+void chazhao(char[], int[]);                                                //按某种依据查找符合条件的联系人
+void paixu();                                                               //整理表之后*尝试*对联系人进行首字母和拼音冒泡排序
+void xieru();                                                               //输出所有数据到文件
+void duqu();                                                                //从文件读取数据
+void zhuxiao();                                                           //注销
 /*交互性函数*/
-	void xianshi(jijin *zzb);                                                   //（已废弃）从头到尾显示全部联系人
-	void tianjia(jijin *&zzb);                                                  //新增一个联系人
-	void bianji(int [],int);                                                    //修改或者删除等 操作一个联系人
-	void sousuokuang();                                                         //显示搜索框
-	void caidan();                                                              //显示程序选单
+void xianshi(jijin *zzb);                                                   //（已废弃）从头到尾显示全部联系人
+void tianjia(jijin *&zzb);                                                  //新增一个联系人
+void bianji(int[], int);                                                    //修改或者删除等 操作一个联系人
+void sousuokuang();                                                         //显示搜索框
+int caidan();                                                              //显示程序选单
+void denglu();                                                              //登入
+void genggaimima();                                                         //更改密码
 /*----------声明终点----------*/
 
 int 主函数()
 {
-	system("color f5");
-	system("title SlaEpic电话本");
-	newbiao(zhizhenbiao);
-	logo(25,9);
-	pause();
-	sousuokuang();
+	while (1) {
+		system("color f5");
+		system("title SlaEpic电话本");
+		newbiao(zhizhenbiao);
+		denglu();
+		duqu();
+		sousuokuang();
+		zhuxiao();
+	}
 }
-void caidan() {
+void denglu() {
+	while (1) {
+		cls();
+		logo(25, 4);
+		guangbiao(49, 17); cout << "使用您的SlaEpic账号";
+		guangbiao(45, 18); cout << "---------------------------";
+		guangbiao(52, 20); cout << "[Enter]下一步" << endl;
+		do {//防止空名称
+			guangbiao(45, 19); chaoxie(set->yonghuming, 33);
+		} while (!strlen(set->yonghuming));
+		wenjianming = set->yonghuming + houzui;
+		wenjian.open(wenjianming, ios::_Nocreate | ios::binary);
+		for (int g = 17; g < 22; g++) { guangbiao(0, g); for (int i = 0; i < 119; i++)cout << " "; }
+		if (!wenjian) {//当没有这个用户时
+			guangbiao((106 - strlen(set->yonghuming)) / 2 - 1, 17); cout << "以 " << set->yonghuming << " 的身份继续";
+			guangbiao((106 - strlen(set->yonghuming)) / 2 - 3, 18); for (unsigned int i = 0; i < strlen(set->yonghuming) + 18; i++)cout << "-";
+			guangbiao(39, 20); cout << "密码最大32位 [Enter]新建账户  [ESC]取消" << endl;
+			char shuru[33] = { 0 }; int zifu = 0; int i = 0, esc = 0;
+			while (1) {
+				guangbiao(0, 19); for (int i = 0; i < 119; i++)cout << " ";
+				guangbiao((120 - strlen(shuru)) / 2 - 1, 19); cout << shuru;
+				zifu = anjian();
+				if (zifu > 31 && zifu < 127) {
+					if (i != 32) {
+						shuru[i] = (char)zifu;
+						i++;
+					}
+				}
+				if (zifu == 8) {
+					if (i) {
+						i--;
+						shuru[i] = '\0';
+					}
+				}
+				if (zifu == 27) { esc++; break; }
+				if (zifu == 13)break;
+			}
+			if (esc)continue;
+			cout << endl;
+			strcpy_s(set->mima, shuru);
+			wenjian.open(wenjianming, ios::binary | ios::out);
+			wenjian.seekp(0);
+			wenjian.write((char*)set, sizeof(shezhi));//往新创建的文件内写入设置
+			wenjian.close();
+			return;
+		}
+		if(wenjian){//用户存在
+			wenjian.seekg(0);
+			wenjian.read((char*)set, sizeof(shezhi));//读取设置等
+			guangbiao((106 - strlen(set->yonghuming)) / 2 - 1, 17); cout << "以 " << set->yonghuming << " 的身份继续";
+			guangbiao((106 - strlen(set->yonghuming)) / 2 - 3, 18); for (unsigned int i = 0; i < strlen(set->yonghuming) + 18; i++)cout << "-";
+			guangbiao(48, 20); cout << "[Enter]登录  [ESC]取消" << endl;
+			char shuru[33] = { '\0' }; int zifu = 0; int i = 0, esc = 0;
+			while (1) {
+				guangbiao(0, 19); for (int i = 0; i < 119; i++)cout << " ";
+				guangbiao((120 - strlen(shuru)) / 2 - 1, 19); for (unsigned int i = 0; i < strlen(shuru); i++)cout << "*";
+				zifu = anjian();
+				if (zifu > 31 && zifu < 127) {
+					if (i != 32) {
+						shuru[i] = (char)zifu;
+						i++;
+					}
+				}
+				if (zifu == 8) {
+					if (i) {
+						i--;
+						shuru[i] = '\0';
+					}
+				}
+				if (zifu == 27) { esc++; break; }
+				if (zifu == 13) { 
+					if(!strcmp(set->mima,shuru))break;
+					else { guangbiao(55, 21); cout << "密码错误" << endl; }
+				}
+			}
+			wenjian.close();
+			if (esc)continue;
+			cout << endl;
+			return;
+        }
+	}
+}
+void genggaimima()
+{
+	guangbiao(9, 10);
+	cout << "请再按一次" << endl;
+	guangbiao(118, 16);
+	int jianzhi = 0;
+	jianzhi = anjian();
+	if (jianzhi != 67&& jianzhi != 99)return;
+	guangbiao(0, 16);
+	cout << "+--------+--------------------------------------+\n|        |  输入旧密码                          |\n|        |                                      |\n|  更改  |                                      |\n|  密码  |  输入新密码（32字符以内）            |\n|        |                                      |\n|        |                                      |\n|        |                       [Enter]下一步  |\n+--------+--------------------------------------+";
+	while (1) {
+		char jiumima[33] = { 0 };
+		guangbiao(12, 18);
+		chaoxie(jiumima, 33);
+		if (!strcmp(jiumima, set->mima))break;
+		guangbiao(23, 17); cout << "密码错误";
+		guangbiao(12, 18); cout << "                                    |" << endl;
+	}
+	guangbiao(23, 17); cout << "        ";
+	guangbiao(12, 21);
+	chaoxie(set->mima, 33);
+	guangbiao(12, 21); cout << "以下为您的新密码                    |";
+	guangbiao(12, 22); cout << set->mima;
+	wenjian.open(wenjianming, ios::in | ios::out | ios::binary);
+	wenjian.seekp(0);
+	wenjian.write((char*)set, sizeof(shezhi));
+	wenjian.close();
+	system("pause >nul");
+	cout << endl;
+	return;
+}
+int caidan() {
 	cls();
-	/*cout << "    请输入选项\n\n    1 显示联系人\n    2 新增联系人\n    3 查找和编辑\n    4 查找\n    5 设置\n\n    " << endl;
-	char xuanxiang = 0;
-	cin >> xuanxiang;
-	switch (xuanxiang) {
-		//case '1':xianshi(zhizhenbiao); break;
-	case '2':tianjia(zhizhenbiao); break;
-		//case '3':sousuokuang(); break;
-		//case 4:chazhao(zhizhenbiao); break;
-		//case 5:shezhi(); break;
-	default:cout << "    输入出错，请重试\n"; caidan(); break;
-	}*/
-	cout << "+-------+---------------------------------------+\n|       |                                       |\n|  OvO  |  [当前登入用户]                       |\n|       |                                       |\n+-------+---------------------------------------+\n|                                               |\n|  [ESC] 联系人                        个数     |\n|                                               |\n|    [+] 新建联系人                             |\n|                                               |\n|    [C] 修改密码                               |\n|                                               |\n|    [O] 强制排序                               |\n|                                               |\n|[右上X] 退出程序                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|  信工二班周松毅C++大作业                      |\n|  SlaEpic联系人程序 - 2018年6月                |\n|  项目地址 github.com/SlawnQiu/SlaEpic         |\n+-----------------------------------------------+";
+	cout << "+-------+---------------------------------------+\n|       |                                       |\n|  OvO  |                                       |\n|       |                                       |\n+-------+---------------------------------------+\n|                                               |\n|  [ESC] 联系人                        个数     |\n|                                               |\n|    [+] 新建联系人                             |\n|                                               |\n|    [C] 更改密码                               |\n|                                               |\n|    [O] 切换用户                               |\n|                                               |\n|[右上X] 退出程序                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|                                               |\n|  信工二班周松毅C++大作业                      |\n|  SlaEpic联系人程序 - 2018年6月                |\n|  项目地址 github.com/SlawnQiu/SlaEpic         |\n+-----------------------------------------------+";
 	logo(50, 9);
 	guangbiao(38, 6); cout << setw(4) << std::left << xunzhao();
 	cout << endl;
-	//guangbiao(3,11);输出当前用户名
-
+	guangbiao(11, 2); cout << set->yonghuming;
 	guangbiao(118, 16);
 	while (1) {
 		int zifu = anjian();
 		switch (zifu) {
-		case 27:return;
-		case 43:tianjia(zhizhenbiao); return;
+		case 27:return 0;
+		case 43:tianjia(zhizhenbiao); return 0;
 		case 79:;
-		case 111:paixu(); return;//cout << "\7"; return;
+		case 111: {guangbiao(9, 12);
+			cout << "请再按一次" << endl;
+			guangbiao(118, 16);
+			int jianzhi = 0;
+			jianzhi = anjian();
+			if (jianzhi != 79&& jianzhi != 111)return 0;
+			return 1; }//登出;
 		case 67:;
-		case 99:cout << "\7\7"; return;
+		case 99:; genggaimima(); return 0;
 		default:;
 		}
 	}
-	cls();
 }
 void newbiao(jijin *&zzb) {
 	zzb = new jijin[biaochang];
+	set = new shezhi;
 }
 int xunzhao() {
 	int i = 0;
@@ -140,22 +265,16 @@ void guangbiao(int x, int y)
 }
 int anjian() {
 	int jianzhi = 0;
-	cin.sync(); cin.clear(); 
 	if ((jianzhi = _getch()) < 127) { rewind(stdin); return jianzhi; }
 	rewind(stdin); return -1;
 }
 void tianjia(jijin *&zzb) {
-	//cls();
 	guangbiao(9, 8);
 	cout << "请再按一次" << endl;
 	guangbiao(118, 16);
-	//while (1) {
 		int jianzhi = 0;
-		cin.sync(); cin.clear();
 		jianzhi = anjian();
-		//if (jianzhi == 13)break; 
 		if (jianzhi != 43)return;
-	//}
 	cls();
 	int i = xunzhao();
 	zzb[i].zhizhen = new ren; zzb[i].zhuangtai = 1;
@@ -168,6 +287,8 @@ void tianjia(jijin *&zzb) {
 	guangbiao(26, 6);
 	chaoxie(zzb[i].zhizhen->dizhi, 40);
 	cout << "\n    " << std::left << setw(20) << zzb[i].zhizhen->mingzi << std::left << setw(15) << zzb[i].zhizhen->haoma << std::left << setw(40) << zzb[i].zhizhen->dizhi << "\n    已经成功添加" << endl;
+	paixu();
+	xieru();
 	pause();
 	return;
 }
@@ -253,6 +374,7 @@ void zhengli()
 	delete[]zhizhenbiao;
 	zhizhenbiao = xinbiao;
 	xinbiao = NULL;
+	set->renshu = xunzhao();
 }
 void chaoxie(char mubiao[], int changdu)
 {
@@ -296,8 +418,14 @@ void sousuokuang() {
 				shuru[i] = '\0';
 			}
 		}
-		if (zifu == 27)caidan();
-		if (zifu == 13)if(shuchugeshu)bianji(jieguo,shuchugeshu);
+		if (zifu == 27) { if(caidan())return;
+		
+		}
+		if (zifu == 13)if (shuchugeshu) {
+			bianji(jieguo, shuchugeshu); 
+			paixu();
+			xieru();
+		}
 		if (jieguo)delete[]jieguo;//除去旧的搜索结果
 	}
 }
@@ -433,4 +561,29 @@ void paixu() {
 	//for (int i = 0; i < renshu; i++)delete[] yiju[i];
 	//delete[] yiju;
 	system("title SlaEpic电话本");
+}
+void xieru() {
+	wenjian.open(wenjianming, ios::in | ios::out | ios::binary | ios::trunc);
+	wenjian.seekp(0);
+	wenjian.write((char*)set, sizeof(shezhi));
+	for (int i = 0; i < xunzhao(); i++)wenjian.write((char*)zhizhenbiao[i].zhizhen, sizeof(ren));
+	wenjian.close();
+}
+void duqu()
+{
+	wenjian.open(wenjianming, ios::in | ios::binary);
+	wenjian.read((char*)set, sizeof(shezhi));
+	for (int i = 0; i < set->renshu; i++) {
+		zhizhenbiao[i].zhizhen = new ren;
+		wenjian.read((char*)zhizhenbiao[i].zhizhen, sizeof(ren));
+		zhizhenbiao[i].zhuangtai++;
+	}
+	wenjian.close();
+}
+void zhuxiao()
+{
+	delete set;
+	for (int i = 0; i < xunzhao(); i++)delete zhizhenbiao[i].zhizhen;
+	delete[] zhizhenbiao;
+	return;
 }
