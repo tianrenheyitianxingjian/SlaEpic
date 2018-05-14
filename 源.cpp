@@ -23,6 +23,7 @@
 //
 //               佛祖保佑         永无BUG
 //由于使用了结构体声明成员带初值的语句，请使用VISUAL STUDIO 2017编译该程序
+//请创建空项目
 //C艹大作业2018 信工二班 周松毅
 //
 #include<fstream>
@@ -33,7 +34,7 @@
 #include<windows.h>
 #include<conio.h>
 #include<cstdio>
-#define 主函数 main
+//#define 主函数 main
 using namespace std;
 
 /*----------声明起点----------*/
@@ -87,7 +88,7 @@ void denglu();                                                              //登
 void genggaimima();                                                         //更改密码
 /*----------声明终点----------*/
 
-int 主函数()
+int main()
 {
 	while (1) {
 		system("color f5");
@@ -363,7 +364,7 @@ void bianji(int jieguo[],int shuchugeshu)
 }
 void zhengli()
 {
-	if (xunzhao() > 0.9*biaochang) biaochang *= 2;
+	if (xunzhao() > biaochang - 10) biaochang *= 2;
 	jijin *xinbiao = new jijin[biaochang];
 	int i1 = 0, i2 = 0;                   //i1为旧表下标，i2为新表下标
 	for (i1 = 0; i1 < xunzhao(); i1++)if (zhizhenbiao[i1].zhuangtai == 1) {                  //迁移数据
@@ -577,6 +578,7 @@ void duqu()
 		zhizhenbiao[i].zhizhen = new ren;
 		wenjian.read((char*)zhizhenbiao[i].zhizhen, sizeof(ren));
 		zhizhenbiao[i].zhuangtai++;
+		if (i > biaochang - 10)zhengli();
 	}
 	wenjian.close();
 }
