@@ -56,7 +56,7 @@ struct shezhi {//存入用户设置等
 };
 /*全局变量*/
 jijin *zhizhenbiao = NULL;
-int biaochang = 128;                                                            //指针表的长度 可以选择扩容
+int biaochang = 128;                                                        //指针表的长度 可以选择扩容
 shezhi *set = NULL;
 fstream wenjian;
 const string houzui = ".epic";
@@ -72,18 +72,18 @@ void logo(int x, int y);                                                    //以
 /*操作性函数*/
 void newbiao(jijin *&zzb);                                                  //创建指针表和设置项
 void zhengli();                                                             //整理指针表，剔除已删除的元素，在空间不足时扩容表长	
-void chaoxie(char[], int);                                                  //从输入抄写限制指定长度的字符串到目标里面，缓存设为9999个字符
+int chaoxie(char[], int);                                                   //从输入抄写限制指定长度的字符串到目标里面，缓存设为9999个字符，超出字符个数限制返回非0
 void chazhao(char[], int[]);                                                //按某种依据查找符合条件的联系人
 void paixu();                                                               //整理表之后*尝试*对联系人进行首字母和拼音冒泡排序
 void xieru();                                                               //输出所有数据到文件
 void duqu();                                                                //从文件读取数据
-void zhuxiao();                                                           //注销
+void zhuxiao();                                                             //注销
 /*交互性函数*/
 void xianshi(jijin *zzb);                                                   //（已废弃）从头到尾显示全部联系人
 void tianjia(jijin *&zzb);                                                  //新增一个联系人
 void bianji(int[], int);                                                    //修改或者删除等 操作一个联系人
 void sousuokuang();                                                         //显示搜索框
-int caidan();                                                              //显示程序选单
+int caidan();                                                               //显示程序选单
 void denglu();                                                              //登入
 void genggaimima();                                                         //更改密码
 /*----------声明终点----------*/
@@ -135,7 +135,7 @@ void denglu() {
 					}
 				}
 				if (zifu == 27) { esc++; break; }
-				if (zifu == 13)break;
+				if (zifu == 13)if (strlen(shuru))break;
 			}
 			if (esc)continue;
 			cout << endl;
@@ -195,14 +195,15 @@ void genggaimima()
 	while (1) {
 		char jiumima[33] = { 0 };
 		guangbiao(12, 18);
-		chaoxie(jiumima, 33);
-		if (!strcmp(jiumima, set->mima))break;
+		if (!chaoxie(jiumima, 33)&&!strcmp(jiumima, set->mima))break;//如果密码超长或不匹配则不通过
 		guangbiao(23, 17); cout << "密码错误";
 		guangbiao(12, 18); cout << "                                    |" << endl;
 	}
 	guangbiao(23, 17); cout << "        ";
-	guangbiao(12, 21);
-	chaoxie(set->mima, 33);
+	do{
+		guangbiao(12, 21);
+		chaoxie(set->mima, 33);
+	} while (!strlen(set->mima));//防止空密码
 	guangbiao(12, 21); cout << "以下为您的新密码                    |";
 	guangbiao(12, 22); cout << set->mima;
 	wenjian.open(wenjianming, ios::in | ios::out | ios::binary);
@@ -280,6 +281,7 @@ void tianjia(jijin *&zzb) {
 	int i = xunzhao();
 	zzb[i].zhizhen = new ren; zzb[i].zhuangtai = 1;
 	cout << "    +--------------+\n    |  新建联系人  |\n    +--------------+\n\n    姓名（最长20字符）:\n    电话（最长15字符）:\n    地址（最长40字符）:\n" << endl;
+	guangbiao(26, 1); cout << "[Enter]下一步";
 	guangbiao(26, 4);
 	rewind(stdin);
 	chaoxie(zzb[i].zhizhen->mingzi, 20);
@@ -296,13 +298,7 @@ void tianjia(jijin *&zzb) {
 void bianji(int jieguo[],int shuchugeshu)
 {
 	int xiang = 1;
-	/*cls();
-	
-	cout << "\n     姓名                号码           地址                                    \n" << endl;
-	int g = 0, shuchugeshu = 0, xiang = 0;
-	for (g = 0; jieguo[g] != -1; g++)cout << " " << std::left << setw(4) << ++shuchugeshu << std::left << setw(20) << zhizhenbiao[jieguo[g]].zhizhen->mingzi << std::left << setw(15) << zhizhenbiao[jieguo[g]].zhizhen->haoma << std::left << setw(40) << zhizhenbiao[jieguo[g]].zhizhen->dizhi << "\n" << endl;
-	cout << "当前搜索结果数量: " << shuchugeshu << "   ↑↓键移动光标，回车键选择该条目进行编辑，ESC键返回"<<endl;*/
-	guangbiao(72, 2); cout << "[↑][↓]移动光标  [回车]选择  [ESC]返回";
+	guangbiao(72, 2); cout << "[↑][↓]移动光标  [Enter]选择  [ESC]返回";
 	guangbiao(0, hang(xiang));
 	while (1) {
 		int zifu = anjian();
@@ -324,18 +320,22 @@ void bianji(int jieguo[],int shuchugeshu)
 					//zhizhenbiao[jieguo[xiang]]
 					cls();
 					xiang--;
-					cout << "    +--------------+\n    |  编辑联系人  |\n    +--------------+\n\n    姓名（最长20字符）:\n\n    电话（最长15字符）:\n\n    地址（最长40字符）:\n" << endl;
-					
+					cout << "    +--------------+\n    |  编辑联系人  |        [Enter]下一步  不更改该项请留空\n    +--------------+\n\n    姓名（最长20字符）:\n\n    电话（最长15字符）:\n\n    地址（最长40字符）:\n" << endl;
+					guangbiao(26, 1);
 					guangbiao(26, 8); cout << zhizhenbiao[jieguo[xiang]].zhizhen->dizhi << "  改为";
 					guangbiao(26, 6); cout << zhizhenbiao[jieguo[xiang]].zhizhen->haoma << "  改为";
 					guangbiao(26, 4); cout << zhizhenbiao[jieguo[xiang]].zhizhen->mingzi << "  改为";
 					rewind(stdin);
+					char linshi[41] = { 0 };
 					guangbiao(26, 5);
-					chaoxie(zhizhenbiao[jieguo[xiang]].zhizhen->mingzi, 20);
+					chaoxie(linshi, 20);
+					if (strlen(linshi))strcpy_s(zhizhenbiao[jieguo[xiang]].zhizhen->mingzi,linshi);
 					guangbiao(26, 7); 
-					chaoxie(zhizhenbiao[jieguo[xiang]].zhizhen->haoma, 15);
+					chaoxie(linshi, 15);
+					if (strlen(linshi))strcpy_s(zhizhenbiao[jieguo[xiang]].zhizhen->haoma, linshi);
 					guangbiao(26, 9);
-					chaoxie(zhizhenbiao[jieguo[xiang]].zhizhen->dizhi, 40);
+					chaoxie(linshi, 40);
+					if (strlen(linshi))strcpy_s(zhizhenbiao[jieguo[xiang]].zhizhen->dizhi, linshi);
 					cout << "\n    " << std::left << setw(20) << zhizhenbiao[jieguo[xiang]].zhizhen->mingzi << std::left << setw(15) << zhizhenbiao[jieguo[xiang]].zhizhen->haoma << std::left << setw(40) << zhizhenbiao[jieguo[xiang]].zhizhen->dizhi << "\n    已经成功更新" << endl;
 					pause();
 					return;
@@ -377,9 +377,10 @@ void zhengli()
 	xinbiao = NULL;
 	set->renshu = xunzhao();
 }
-void chaoxie(char mubiao[], int changdu)
+int chaoxie(char mubiao[], int changdu)
 {
 	rewind(stdin);
+	int fanhui = 0;
 	char *huancun = new char[10000];
 	gets_s(huancun, 10000);
 	int i = 0;
@@ -387,9 +388,13 @@ void chaoxie(char mubiao[], int changdu)
 		mubiao[i] = huancun[i];
 	}
 	mubiao[i] = '\0';
-	if (i == changdu - 1 && huancun[i] != '\0')cout << "\7";
+	if (i == changdu - 1)if ((!(mubiao[changdu - 2] > 31 && mubiao[changdu - 2] < 127)) && (mubiao[changdu - 3] > 31 && mubiao[changdu - 3] < 127))mubiao[changdu - 2] = '\0';//避免数组尾中文字符高位字节丢失导致乱码
+	if (i == changdu - 1 && huancun[i] != '\0') {
+		cout << "\7"; fanhui++;
+	}
 	delete[]huancun;   //释放缓冲区
 	rewind(stdin);
+	return fanhui;
 }
 void sousuokuang() {
 	char shuru[40] = { '\0' }; int zifu = 0; int i = 0;
@@ -398,7 +403,7 @@ void sousuokuang() {
 		chazhao(shuru,jieguo);
 		cls();
 		//实时输出搜索结果
-		cout << "+----------------+---------------------------------------------------------------------------------------------------+\n|                |                                                                                                   |\n|   查找联系人   |                                                                 [回车]选择  [ESC]菜单             |\n|                |                                                                                                   |\n+----------------+---------------------------------------------------------------------------------------------------+" << endl;
+		cout << "+----------------+---------------------------------------------------------------------------------------------------+\n|                |                                                                                                   |\n|   查找联系人   |                                                                 [Enter]选择  [ESC]菜单            |\n|                |                                                                                                   |\n+----------------+---------------------------------------------------------------------------------------------------+" << endl;
 
 			cout << "     姓名                号码           地址                                    \n" << endl;
 			int g = 0, shuchugeshu = 0;
